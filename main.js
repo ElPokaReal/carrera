@@ -395,7 +395,11 @@ function cargarDatos() {
         } else if (edad >= 19 && edad <= 29) {
             categoria = "Libre";
         } else if (edad >= 30 && edad <= 39) {
-            categoria = "Sub Master";
+            if (corredor["Nº"] === "7") {
+                categoria = "(N)"; 
+            } else {
+                categoria = "Sub Master";
+            }
         } else if (edad >= 40 && edad <= 49) {
             categoria = "Master A";
         } else if (edad >= 50 && edad <= 59) {
