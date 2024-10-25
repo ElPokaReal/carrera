@@ -20,7 +20,7 @@ function AgregarCorredor() {
     inputHoraSalida.type = "time"; 
     inputHoraSalida.id = "horaSalida_" + inputNombre; // ID único
     celdaHoraSalida.appendChild(inputHoraSalida);
-    nuevaFila.appendChild(celdaHoraSalida);
+    tablaCategoria.appendChild(celdaHoraSalida);
 
     // Celda para Hora Llegada
     let celdaHoraLlegada = document.createElement("td");
@@ -28,13 +28,13 @@ function AgregarCorredor() {
     inputHoraLlegada.type = "time";
     inputHoraLlegada.id = "horaLlegada_" + inputNombre; // ID único
     celdaHoraLlegada.appendChild(inputHoraLlegada);
-    nuevaFila.appendChild(celdaHoraLlegada);
+    tablaCategoria.appendChild(celdaHoraLlegada);
 
     // Celda para Tiempo Total (inicialmente vacía)
     let celdaTiempoTotal = document.createElement("td");
-    nuevaFila.appendChild(celdaTiempoTotal);
+    tablaCategoria.appendChild(celdaTiempoTotal);
 
-    document.getElementById("tablaCorredores").appendChild(nuevaFila);
+    document.getElementById("tablaCorredores").appendChild(tablaCategoria);
   
     document.getElementById("nombreCorredor").value = "";
     document.getElementById("edadCorredor").value = "";
@@ -69,20 +69,28 @@ inputHoraLlegada.addEventListener('change', () => {
         let minutos = tiempoTotalEnMinutos % 60;
         let tiempoTotalFormateado = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
 
-        // Buscar la celda de Tiempo Total y actualizarla
-        let filaCorredor = Array.from(document.querySelectorAll('#tablaCorredores tr')).find(fila => {
-          return fila.textContent.includes(corredor); 
-        });
-      
-        if (filaCorredor) {
-          let celdaTiempoTotal = filaCorredor.querySelectorAll('td')[6];
-          celdaTiempoTotal.textContent = tiempoTotalFormateado;
-          localStorage.setItem(`tiempoTotal_${corredor}`, tiempoTotalFormateado);
-          console.log(`Tiempo total de ${corredor} actualizado`)
-        } else {
-          console.log("No se encontró la fila del corredor:", corredor);
-        }
-  }      
+    // Find the row and cell for the runner
+    let tablaCategoria = Array.from(document.querySelectorAll('table')).find(tabla => {
+      return tabla.id.startsWith('tabla_'); // Find the category table
+    });
+
+    if (tablaCategoria) {
+      let filaCorredor = Array.from(tablaCategoria.querySelectorAll('tr')).find(fila => {
+        return fila.textContent.includes(corredor); 
+      });
+
+      if (filaCorredor) {
+        let celdaTiempoTotal = filaCorredor.querySelectorAll('td')[6];
+        celdaTiempoTotal.textContent = tiempoTotalFormateado;
+        localStorage.setItem(`tiempoTotal_${corredor}`, tiempoTotalFormateado);
+        console.log(`Tiempo total de ${corredor} actualizado`);
+      } else {
+        console.log("No se encontró la fila del corredor:", corredor);
+      }
+    } else {
+      console.log("No se encontró la tabla de categoría");
+    }
+  }
 }
 
 const corredoresData = [
@@ -370,22 +378,6 @@ const corredoresData = [
 
 function cargarDatos() {
     corredoresData.forEach(corredor => {
-        let nuevaFila = document.createElement("tr");
-
-        // Create and append Number cell
-        let celdaNumero = document.createElement("td");
-        celdaNumero.textContent = corredor.Nº;
-        nuevaFila.appendChild(celdaNumero);
-
-        // Create and append Runner Name cell
-        let celdaNombre = document.createElement("td");
-        celdaNombre.textContent = corredor.Corredor;
-        nuevaFila.appendChild(celdaNombre);
-
-        // Create and append Age cell
-        let celdaEdad = document.createElement("td");
-        celdaEdad.textContent = corredor.Edad;
-        nuevaFila.appendChild(celdaEdad);
 
         // Calculate and assign category based on age
         let edad = parseInt(corredor.Edad);
@@ -408,30 +400,68 @@ function cargarDatos() {
             categoria = "Master C";
         }
 
+  // Get or create the table for the category
+  let tablaCategoria = document.getElementById("tabla_" + categoria);
+  if (!tablaCategoria) {
+    tablaCategoria = document.createElement("table");
+    tablaCategoria.id = "tabla_" + categoria;
+    tablaCategoria.innerHTML = `
+      <tr>
+        <th>Nº</th>
+        <th>Corredor</th>
+        <th>Edad</th>
+        <th>Categoría</th>
+        <th>Hora Salida</th>
+        <th>Hora Llegada</th>
+        <th>Tiempo Total</th>
+        <th>Acción</th>
+      </tr>
+    `;
+    document.body.appendChild(tablaCategoria); // Add the table to the page
+  }
+
+        // Create the row for the runner 
+        let nuevaFila = document.createElement("tr");
+
+        // Create cells and add to the row (updated)
+        let celdaNumero = document.createElement("td");
+        celdaNumero.textContent = corredor.Nº;
+        nuevaFila.appendChild(celdaNumero);
+
+        let celdaNombre = document.createElement("td");
+        celdaNombre.textContent = corredor.Corredor;
+        nuevaFila.appendChild(celdaNombre);
+
+        // Create and append Age cell
+        let celdaEdad = document.createElement("td");
+        celdaEdad.textContent = corredor.Edad;
+        nuevaFila.appendChild(celdaEdad);
+
         // Create and append Category cell with the calculated 'categoria'
         let celdaCategoria = document.createElement("td");
         celdaCategoria.textContent = categoria;
         nuevaFila.appendChild(celdaCategoria);
 
-    // Celda para Hora Salida
-    let celdaHoraSalida = document.createElement("td");
-    let inputHoraSalida = document.createElement("input");
-    inputHoraSalida.type = "time";
-    inputHoraSalida.id = "horaSalida_" + corredor.Corredor; // ID único
-    celdaHoraSalida.appendChild(inputHoraSalida);
-    nuevaFila.appendChild(celdaHoraSalida);
+         // Celda para Hora Salida
+         let celdaHoraSalida = document.createElement("td");
+         let inputHoraSalida = document.createElement("input");
+         inputHoraSalida.type = "time";
+         inputHoraSalida.id = "horaSalida_" + corredor.Corredor; 
+         celdaHoraSalida.appendChild(inputHoraSalida);
+         nuevaFila.appendChild(celdaHoraSalida); // Appended to the row
+ 
+         // Celda para Hora Llegada
+         let celdaHoraLlegada = document.createElement("td");
+         let inputHoraLlegada = document.createElement("input");
+         inputHoraLlegada.type = "time";
+         inputHoraLlegada.id = "horaLlegada_" + corredor.Corredor; 
+         celdaHoraLlegada.appendChild(inputHoraLlegada);
+         nuevaFila.appendChild(celdaHoraLlegada); // Appended to the row
+ 
+         // Celda para Tiempo Total (inicialmente vacía)
+         let celdaTiempoTotal = document.createElement("td");
+         nuevaFila.appendChild(celdaTiempoTotal); // Appended to the row
 
-    // Celda para Hora Llegada
-    let celdaHoraLlegada = document.createElement("td");
-    let inputHoraLlegada = document.createElement("input");
-    inputHoraLlegada.type = "time";
-    inputHoraLlegada.id = "horaLlegada_" + corredor.Corredor; // ID único
-    celdaHoraLlegada.appendChild(inputHoraLlegada);
-    nuevaFila.appendChild(celdaHoraLlegada);
-
-    // Celda para Tiempo Total (inicialmente vacía)
-    let celdaTiempoTotal = document.createElement("td");
-    nuevaFila.appendChild(celdaTiempoTotal);
 
     // Crear boton para Limpiar los Tiempos
     let celdaLimpiar = document.createElement("td");
@@ -448,6 +478,7 @@ function cargarDatos() {
     });
     celdaLimpiar.appendChild(botonLimpiar);
     nuevaFila.appendChild(celdaLimpiar);
+    tablaCategoria.appendChild(nuevaFila); 
 
     let savedHoraSalida = localStorage.getItem(`horaSalida_${corredor.Corredor}`);
     let savedHoraLlegada = localStorage.getItem(`horaLlegada_${corredor.Corredor}`);
@@ -465,7 +496,7 @@ function cargarDatos() {
       celdaTiempoTotal.textContent = savedTiempoTotal;
     }
 
-    document.getElementById("tablaCorredores").appendChild(nuevaFila);
+    document.getElementById("tablaCorredores").appendChild(tablaCategoria);
 
     // Add event listeners for calculating total time
     inputHoraSalida.addEventListener('change', () => {

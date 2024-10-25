@@ -4,10 +4,21 @@ body{
 }
 
 /* Table Styling */
+
+#tablas-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around; /* Distribuye el espacio entre tablas */
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    display: inline-block;
+    width: 100%; /* Ajusta el ancho según sea necesario */
+    vertical-align: top;
+    margin: 10px; /* Espacio entre tablas */
 }
 
 th, td {
