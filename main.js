@@ -495,45 +495,45 @@ function cargarDatos() {
     });
   });
 
-  document.getElementById("exportarBtn").addEventListener("click", exportarDatosCSV);
+  document.getElementById("exportarBtn").addEventListener("click", exportarDatosPDF);
 
 }
 
-function exportarDatosCSV() {
+function exportarDatosPDF() {
+
   // Obtener todas las tablas de hits
   let tablasHits = document.querySelectorAll('[id^="tabla_hit"]');
 
-  // Inicializar el contenido del CSV
-  let csvContent = "data:text/csv;charset=utf-8,";
+  // Crear un nuevo documento PDF
+  const doc = new jsPDF();
 
   // Iterar sobre las tablas de hits
-  tablasHits.forEach(tabla => {
-    // Obtener las filas de la
- tabla
-    let filas = tabla.querySelectorAll("tr");
+  tablasHits.forEach((tabla, index) => {
+    // Clonar la tabla para evitar modificar la original
+    let tablaClonada = tabla.cloneNode(true);
 
-    // Iterar sobre las filas (ignorando la primera fila que son los encabezados)
-    for (let i = 1; i < filas.length; i++) {
-      let fila = filas[i];
-      let celdas = fila.querySelectorAll("td");
-      let filaCSV = [];
+    // Eliminar los botones "Limpiar Tiempos" de la tabla clonada
+    let botonesLimpiar = tablaClonada.querySelectorAll('.limpiar-tiempos');
+    botonesLimpiar.forEach(boton => boton.remove());
 
-      // Iterar sobre las celdas de la fila
-      celdas.forEach(celda => {
-        filaCSV.push(celda.textContent); // Obtener el texto de la celda
-      });
+    // Convertir la tabla clonada a HTML
+    const tablaHTML = tablaClonada.outerHTML;
 
-      // Agregar la fila al contenido del CSV
-      csvContent += filaCSV.join(",") + "\r\n";
-    }
+    // Agregar la tabla al PDF
+    doc.html(tablaHTML, {
+      callback: (doc) => {
+        // Si no es la última tabla, agregar una nueva página
+        if (index < tablasHits.length - 1) {
+          doc.addPage();
+        } else {
+          // Guardar el PDF
+          doc.save('datos_carrera.pdf');
+        }
+      },
+      x: 10,
+      y: 10,
+    });
   });
-
-  // Crear un enlace para descargar el archivo CSV
-  let encodedUri = encodeURI(csvContent);
-  let link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "datos_carrera.csv");
-  link.click(); // Simular un clic en el enlace para iniciar la descarga
 }
 
 // Call the function when the page loads
