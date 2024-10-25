@@ -35,7 +35,7 @@ function calcularTiempoTotal(corredor) {
       );
 
       if (filaCorredor) {
-        let celdaTiempoTotal = filaCorredor.querySelectorAll("td")[6];
+        let celdaTiempoTotal = filaCorredor.querySelectorAll("td")[7];
         celdaTiempoTotal.textContent = tiempoTotalFormateado;
         localStorage.setItem(`tiempoTotal_${corredor}`, tiempoTotalFormateado);
         console.log(`Tiempo total de ${corredor} actualizado`);
@@ -495,48 +495,62 @@ function cargarDatos() {
     });
   });
 
-  document.getElementById("exportarBtn").addEventListener("click", exportarDatosPDF);
-
 }
 
-function exportarDatosPDF() {
+document.addEventListener('DOMContentLoaded', function() {
+  const exportarBtn = document.getElementById('exportarBtn');
+  exportarBtn.addEventListener('click', exportarDatosExcel);
 
-  // Obtener todas las tablas de hits
-  let tablasHits = document.querySelectorAll('[id^="tabla_hit"]');
+  function exportarDatosExcel() {
+    // Crear un nuevo libro de trabajo (workbook)
+    const workbook = XLSX.utils.book_new();
+  
+    // Obtener el número total de hits (ajusta según tu lógica)
+    const totalHits = document.querySelectorAll('[id^="tabla_hit"]').length;
+  
+    // Iterar sobre todos los hits
+    for (let hit = 1; hit <= totalHits; hit++) {
+      // Obtener la tabla del hit actual
+      let tablaHit = document.getElementById("tabla_hit" + hit);
+  
+      if (tablaHit) { // Verificar si la tabla existe
+        // Clonar la tabla para evitar modificar la original
+        let tablaClonada = tablaHit.cloneNode(true);
+  
+        // Eliminar los botones "Limpiar Tiempos" de la tabla clonada
+        let botonesLimpiar = tablaClonada.querySelectorAll('.limpiar-tiempos');
+        botonesLimpiar.forEach(boton => boton.remove());
+  
+        // Eliminar la columna "Acción" 
+        let columnaAccion = tablaClonada.querySelectorAll('th:last-of-type, td:last-of-type');
+        columnaAccion.forEach(celda => celda.remove());
+  
+        // Agregar color a los títulos (encabezados de la tabla)
+        let titulos = tablaClonada.querySelectorAll('th');
+        titulos.forEach(titulo => {
+          titulo.style.backgroundColor = '#f2f2f2'; // Color de fondo gris claro
+          titulo.style.fontWeight = 'bold'; // Negrita
+        });
+  
+    const celdasTiempo = tablaClonada.querySelectorAll('input[type="time"]');
 
-  // Crear un nuevo documento PDF
-  const doc = new jsPDF();
-
-  // Iterar sobre las tablas de hits
-  tablasHits.forEach((tabla, index) => {
-    // Clonar la tabla para evitar modificar la original
-    let tablaClonada = tabla.cloneNode(true);
-
-    // Eliminar los botones "Limpiar Tiempos" de la tabla clonada
-    let botonesLimpiar = tablaClonada.querySelectorAll('.limpiar-tiempos');
-    botonesLimpiar.forEach(boton => boton.remove());
-
-    // Convertir la tabla clonada a HTML
-    const tablaHTML = tablaClonada.outerHTML;
-
-    // Agregar la tabla al PDF
-    doc.html(tablaHTML, {
-      callback: (doc) => {
-        // Si no es la última tabla, agregar una nueva página
-        if (index < tablasHits.length - 1) {
-          doc.addPage();
-        } else {
-          // Guardar el PDF
-          doc.save('datos_carrera.pdf');
-        }
-      },
-      x: 10,
-      y: 10,
+        celdasTiempo.forEach(input => {
+      const celda = input.parentNode; // Obtener la celda padre del input
+      celda.textContent = input.value; // Reemplazar el input por su valor
+      celda.removeAttribute('style'); // Eliminar estilos inline (opcional)
     });
-  });
-}
 
-// Call the function when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-  cargarDatos();
+        // Convertir la tabla HTML a una hoja de cálculo (worksheet)
+        const worksheet = XLSX.utils.table_to_sheet(tablaClonada);
+  
+        // Agregar la hoja de cálculo al libro de trabajo
+        XLSX.utils.book_append_sheet(workbook, worksheet, `Hit ${hit}`);
+      }
+    }
+  
+    // Guardar el libro de trabajo como un archivo Excel
+    XLSX.writeFile(workbook, 'datos_carrera.xlsx');
+  }
 });
+
+cargarDatos();
