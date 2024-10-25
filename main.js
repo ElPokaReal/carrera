@@ -494,6 +494,46 @@ function cargarDatos() {
       console.log(`Hora de llegada de ${corredor.Corredor} actualizada`);
     });
   });
+
+  document.getElementById("exportarBtn").addEventListener("click", exportarDatosCSV);
+
+}
+
+function exportarDatosCSV() {
+  // Obtener todas las tablas de hits
+  let tablasHits = document.querySelectorAll('[id^="tabla_hit"]');
+
+  // Inicializar el contenido del CSV
+  let csvContent = "data:text/csv;charset=utf-8,";
+
+  // Iterar sobre las tablas de hits
+  tablasHits.forEach(tabla => {
+    // Obtener las filas de la
+ tabla
+    let filas = tabla.querySelectorAll("tr");
+
+    // Iterar sobre las filas (ignorando la primera fila que son los encabezados)
+    for (let i = 1; i < filas.length; i++) {
+      let fila = filas[i];
+      let celdas = fila.querySelectorAll("td");
+      let filaCSV = [];
+
+      // Iterar sobre las celdas de la fila
+      celdas.forEach(celda => {
+        filaCSV.push(celda.textContent); // Obtener el texto de la celda
+      });
+
+      // Agregar la fila al contenido del CSV
+      csvContent += filaCSV.join(",") + "\r\n";
+    }
+  });
+
+  // Crear un enlace para descargar el archivo CSV
+  let encodedUri = encodeURI(csvContent);
+  let link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "datos_carrera.csv");
+  link.click(); // Simular un clic en el enlace para iniciar la descarga
 }
 
 // Call the function when the page loads
